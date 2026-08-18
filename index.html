@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Monopoli Detektif Imbuhan Pe- | Kelas 5 SD (PID Edition)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Fredoka & Nunito for Grade 5 SD Students -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti for Victory Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        nunito: ['Nunito', 'sans-serif'],
+                    },
+                    colors: {
+                        boardBg: '#0f172a',
+                        teamRed: '#ef4444',
+                        teamBlue: '#3b82f6',
+                        teamGreen: '#10b981',
+                        teamYellow: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Touch & PID Specific Optimizations */
+        * {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            background: #090d16;
+            color: #f8fafc;
+        }
+
+        .title-font {
+            font-family: 'Fredoka', cursive;
+        }
+
+        /* 3D Dice Styling & PID Large Display Animation */
+        .dice-container {
+            perspective: 1000px;
+        }
+
+        .dice {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+            cursor: pointer;
+        }
+
+        @media (min-width: 640px) {
+            .dice {
+                width: 115px;
+                height: 115px;
+            }
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #ffffff, #e2e8f0);
+            border: 4px solid #1e293b;
+            border-radius: 22px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 10px;
+            box-shadow: inset 0 0 14px rgba(0,0,0,0.2), 0 12px 24px rgba(0,0,0,0.5);
+        }
+
+        .dot {
+            width: 16px;
+            height: 16px;
+            background: #0f172a;
+            border-radius: 50%;
+            margin: auto;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
+        }
+
+        @media (min-width: 640px) {
+            .dot {
+                width: 18px;
+                height: 18px;
+            }
+        }
+
+        .face-1 { transform: translateZ(50px); }
+        .face-2 { transform: rotateY(180deg) translateZ(50px); }
+        .face-3 { transform: rotateY(-90deg) translateZ(50px); }
+        .face-4 { transform: rotateY(90deg) translateZ(50px); }
+        .face-5 { transform: rotateX(-90deg) translateZ(50px); }
+        .face-6 { transform: rotateX(90deg) translateZ(50px); }
+
+        @media (min-width: 640px) {
+            .face-1 { transform: translateZ(57.5px); }
+            .face-2 { transform: rotateY(180deg) translateZ(57.5px); }
+            .face-3 { transform: rotateY(-90deg) translateZ(57.5px); }
+            .face-4 { transform: rotateY(90deg) translateZ(57.5px); }
+            .face-5 { transform: rotateX(-90deg) translateZ(57.5px); }
+            .face-6 { transform: rotateX(90deg) translateZ(57.5px); }
+        }
+
+        /* 6x6 Grid Monopoly Board Layout */
+        .monopoly-board-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+            gap: 4px;
+            width: min(calc(100vh - 100px), calc(100vw - 360px), 720px);
+            height: min(calc(100vh - 100px), calc(100vw - 360px), 720px);
+            aspect-ratio: 1 / 1;
+        }
+
+        @media (max-width: 1023px) {
+            .monopoly-board-grid {
+                width: min(calc(100vh - 220px), 92vw);
+                height: min(calc(100vh - 220px), 92vw);
+            }
+        }
+
+        @media (min-width: 640px) {
+            .monopoly-board-grid {
+                gap: 5px;
+            }
+        }
+
+        /* Original Tile Card Design */
+        .tile-card {
+            position: relative;
+            background-color: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            padding: 4px;
+        }
+
+        .tile-card:hover, .tile-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            z-index: 20;
+        }
+
+        /* Magnet Pawn Animation & Layout inside Tile */
+        .pawns-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            align-items: center;
+            justify-content: center;
+            min-height: 24px;
+        }
+
+        .pawn-badge {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2.5px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .pawn-active-glow {
+            animation: magnetPulse 1s infinite alternate;
+        }
+
+        @keyframes magnetPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255,255,255,0.9)); }
+            100% { transform: scale(1.3); filter: drop-shadow(0 0 14px rgba(245,158,11,1)); }
+        }
+
+        /* High Contrast Option for Large PID screens */
+        .pid-text-large {
+            font-size: 1.15rem !important;
+        }
+
+        /* Custom Touch Ripple / Feedback */
+        .touch-active:active {
+            transform: scale(0.97);
+            filter: brightness(1.15);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col justify-between bg-slate-950 text-slate-100">
+
+    <!-- Top Navigation & PID Control Bar -->
+    <header class="bg-slate-900 border-b border-slate-800 px-3 sm:px-6 py-2 flex justify-between items-center shadow-2xl flex-shrink-0 z-40">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 p-2 sm:p-3 rounded-2xl text-lg sm:text-2xl shadow-lg">
+                <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-base sm:text-xl md:text-2xl font-black title-font tracking-wide text-amber-400">
+                        MONOPOLI DETEKTIF IMBUHAN PE-
+                    </h1>
+                    <span class="bg-emerald-500/20 text-emerald-400 text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-extrabold border border-emerald-500/40 hidden sm:inline-block">
+                        <i class="fa-solid fa-display mr-1"></i> Mode PID / Smartboard
+                    </span>
+                </div>
+                <p class="text-[10px] sm:text-xs text-slate-400 font-medium">Media Pembelajaran Interaktif Bahasa Indonesia Kelas 5 SD</p>
+            </div>
+        </div>
+
+        <!-- PID Quick Control Buttons -->
+        <div class="flex items-center space-x-2">
+            <!-- Fullscreen Toggle for PID -->
+            <button onclick="toggleFullscreen()" title="Layar Penuh PID" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-amber-300 border border-slate-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-md touch-active">
+                <i class="fa-solid fa-expand" id="fullscreenIcon"></i>
+                <span class="hidden md:inline" id="fullscreenText">Layar Penuh</span>
+            </button>
+
+            <!-- Audio Toggle -->
+            <button onclick="toggleAudio()" id="audioBtn" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-amber-300 border border-slate-700 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-md touch-active">
+                <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+                <span class="hidden sm:inline" id="audioText">Suara: ON</span>
+            </button>
+
+            <!-- Rules Modal Button -->
+            <button onclick="showRulesModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3.5 py-2 rounded-xl text-xs sm:text-sm transition shadow-lg flex items-center gap-1.5 touch-active">
+                <i class="fa-solid fa-book-open"></i> <span class="hidden xs:inline">Aturan</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- COVER / SPLASH SCREEN OVERLAY (PID Optimized) -->
+    <div id="startScreen" class="fixed inset-0 z-50 bg-slate-950/95 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+        <div class="max-w-2xl w-full bg-slate-900 border-2 border-amber-500/60 rounded-3xl p-5 sm:p-8 text-center text-white shadow-2xl relative my-auto">
+            
+            <div class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-400 border border-amber-500/40 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-graduation-cap"></i> Modul Bahasa Indonesia Kelas 5 SD
+            </div>
+
+            <h2 class="text-2xl sm:text-4xl md:text-5xl font-black title-font text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mb-2">
+                MONOPOLI DETEKTIF IMBUHAN PE-
+            </h2>
+            <p class="text-slate-300 text-xs sm:text-sm md:text-base max-w-xl mx-auto mb-4 leading-relaxed">
+                Selamat Datang Detektif Cilik! Sentuh dadu di layar PID, selesaikan 3 soal imbuhan <span class="text-amber-400 font-bold">pe-</span> (kata dasar, makna, dan kalimat), kumpulkan poin, dan kuasai petak kasus bersama kelompokmu!
+            </p>
+
+            <!-- Group Name Inputs with Touch Chips -->
+            <div class="bg-slate-800/90 p-4 sm:p-5 rounded-2xl border border-slate-700 mb-5 text-left">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-xs sm:text-sm font-bold text-amber-400 uppercase tracking-wider">
+                        <i class="fa-solid fa-users mr-1.5"></i> Nama 4 Kelompok (PID Keyboard Friendly)
+                    </h3>
+                    <span class="text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">5 Kesempatan/Kelompok</span>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div class="flex items-center bg-slate-900 rounded-xl p-2.5 border border-red-500/60">
+                        <span class="w-5 h-5 rounded-full bg-red-500 inline-block mr-2.5 shadow flex-shrink-0"></span>
+                        <input type="text" id="teamName0" value="Kelompok Merah" class="bg-transparent text-white text-xs sm:text-sm focus:outline-none w-full font-bold py-1">
+                    </div>
+                    <div class="flex items-center bg-slate-900 rounded-xl p-2.5 border border-blue-500/60">
+                        <span class="w-5 h-5 rounded-full bg-blue-500 inline-block mr-2.5 shadow flex-shrink-0"></span>
+                        <input type="text" id="teamName1" value="Kelompok Biru" class="bg-transparent text-white text-xs sm:text-sm focus:outline-none w-full font-bold py-1">
+                    </div>
+                    <div class="flex items-center bg-slate-900 rounded-xl p-2.5 border border-emerald-500/60">
+                        <span class="w-5 h-5 rounded-full bg-emerald-500 inline-block mr-2.5 shadow flex-shrink-0"></span>
+                        <input type="text" id="teamName2" value="Kelompok Hijau" class="bg-transparent text-white text-xs sm:text-sm focus:outline-none w-full font-bold py-1">
+                    </div>
+                    <div class="flex items-center bg-slate-900 rounded-xl p-2.5 border border-amber-500/60">
+                        <span class="w-5 h-5 rounded-full bg-amber-500 inline-block mr-2.5 shadow flex-shrink-0"></span>
+                        <input type="text" id="teamName3" value="Kelompok Kuning" class="bg-transparent text-white text-xs sm:text-sm focus:outline-none w-full font-bold py-1">
+                    </div>
+                </div>
+
+                <!-- Quick Preset Touch Chips for PID -->
+                <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span class="text-[10px] text-slate-400 font-bold mr-1">Preset Nama Cepat:</span>
+                    <button type="button" onclick="setPresetNames(['Tim Elang', 'Tim Harimau', 'Tim Garuda', 'Tim Singa'])" class="bg-slate-900 hover:bg-slate-700 text-amber-300 text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 font-bold touch-active">
+                        🐾 Hewan
+                    </button>
+                    <button type="button" onclick="setPresetNames(['Kelompok 1', 'Kelompok 2', 'Kelompok 3', 'Kelompok 4'])" class="bg-slate-900 hover:bg-slate-700 text-amber-300 text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 font-bold touch-active">
+                        🔢 Angka
+                    </button>
+                    <button type="button" onclick="setPresetNames(['Detektif Alfa', 'Detektif Beta', 'Detektif Gamma', 'Detektif Delta'])" class="bg-slate-900 hover:bg-slate-700 text-amber-300 text-[10px] px-2.5 py-1 rounded-lg border border-slate-700 font-bold touch-active">
+                        🔍 Detektif
+                    </button>
+                </div>
+            </div>
+
+            <!-- Huge Touch Launch Button -->
+            <button onclick="startGame()" class="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black text-base sm:text-lg py-4 rounded-2xl shadow-xl transition duration-300 transform active:scale-95 flex items-center justify-center gap-2.5 touch-active">
+                <i class="fa-solid fa-play text-xl"></i> MULAI PERMAINAN (LANJUT)
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN GAME DISPLAY AREA -->
+    <main class="flex-1 w-full max-w-7xl mx-auto p-2 sm:p-3 flex flex-col lg:flex-row items-center lg:items-center justify-center gap-3 lg:gap-5 overflow-hidden min-h-0">
+
+        <!-- MONOPOLY BOARD AREA -->
+        <div class="w-full lg:w-auto flex justify-center items-center flex-shrink-0">
+            <div id="monopolyBoard" class="monopoly-board-grid bg-slate-900 p-2 sm:p-2.5 rounded-3xl shadow-2xl border-4 border-amber-500/60 relative">
+                <!-- 20 Outer Tiles dynamically generated via JS -->
+
+                <!-- BOARD CENTER AREA -->
+                <div class="col-start-2 col-span-4 row-start-2 row-span-4 bg-slate-950/95 border-2 border-amber-500/40 rounded-2xl p-3 sm:p-4 flex flex-col justify-between items-center text-center relative overflow-hidden shadow-inner">
+                    
+                    <!-- Turn Active Banner -->
+                    <div id="turnBanner" class="w-full bg-slate-900 border-2 border-red-500 text-red-400 p-2.5 sm:p-3 rounded-xl flex items-center justify-between shadow-lg transition-all">
+                        <div class="flex items-center gap-2">
+                            <span id="turnPawnBadge" class="w-4 h-4 rounded-full bg-red-500 inline-block shadow"></span>
+                            <span class="text-[10px] sm:text-xs uppercase font-extrabold text-slate-400 tracking-wider">Giliran Bermain:</span>
+                        </div>
+                        <span id="currentTeamText" class="font-black text-xs sm:text-base text-white">Kelompok Merah</span>
+                    </div>
+
+                    <!-- Centered 3D Pop-Up Dice (PID Large Touch Area) -->
+                    <div class="my-auto py-2 sm:py-3 flex flex-col items-center">
+                        <div class="dice-container mb-3 sm:mb-4 touch-active" onclick="rollDice()">
+                            <div id="dice3d" class="dice" title="Sentuh dadu untuk melempar!">
+                                <div class="dice-face face-1">
+                                    <div class="dot col-start-2 row-start-2"></div>
+                                </div>
+                                <div class="dice-face face-2">
+                                    <div class="dot col-start-1 row-start-1"></div>
+                                    <div class="dot col-start-3 row-start-3"></div>
+                                </div>
+                                <div class="dice-face face-3">
+                                    <div class="dot col-start-1 row-start-1"></div>
+                                    <div class="dot col-start-2 row-start-2"></div>
+                                    <div class="dot col-start-3 row-start-3"></div>
+                                </div>
+                                <div class="dice-face face-4">
+                                    <div class="dot col-start-1 row-start-1"></div>
+                                    <div class="dot col-start-3 row-start-1"></div>
+                                    <div class="dot col-start-1 row-start-3"></div>
+                                    <div class="dot col-start-3 row-start-3"></div>
+                                </div>
+                                <div class="dice-face face-5">
+                                    <div class="dot col-start-1 row-start-1"></div>
+                                    <div class="dot col-start-3 row-start-1"></div>
+                                    <div class="dot col-start-2 row-start-2"></div>
+                                    <div class="dot col-start-1 row-start-3"></div>
+                                    <div class="dot col-start-3 row-start-3"></div>
+                                </div>
+                                <div class="dice-face face-6">
+                                    <div class="dot col-start-1 row-start-1"></div>
+                                    <div class="dot col-start-3 row-start-1"></div>
+                                    <div class="dot col-start-1 row-start-2"></div>
+                                    <div class="dot col-start-3 row-start-2"></div>
+                                    <div class="dot col-start-1 row-start-3"></div>
+                                    <div class="dot col-start-3 row-start-3"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Touch Button for PID -->
+                        <button id="rollBtn" onclick="rollDice()" class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black px-6 sm:px-8 py-3 rounded-2xl shadow-xl border-2 border-amber-300 text-xs sm:text-base transition transform active:scale-95 flex items-center gap-2 touch-active">
+                            <i class="fa-solid fa-dice text-lg sm:text-xl"></i> LEMPAR DADU
+                        </button>
+                        <p id="diceStatus" class="text-[11px] sm:text-xs text-amber-300 mt-2 font-extrabold tracking-wide">Sentuh dadu atau tombol untuk melangkah!</p>
+                    </div>
+
+                    <!-- Bottom Turn Counter Footer -->
+                    <div class="w-full bg-slate-900/90 rounded-xl p-2 border border-slate-800 text-[10px] sm:text-xs text-slate-400 flex items-center justify-between">
+                        <span><i class="fa-solid fa-pen-nib text-amber-400 mr-1"></i> Detektif Imbuhan</span>
+                        <span id="roundCounter" class="font-extrabold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/30">
+                            Putaran: 1 / 5 (5 Kesempatan/Kelompok)
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR SCOREBOARD -->
+        <div class="w-full lg:w-80 flex flex-col gap-2.5 max-h-full overflow-y-auto min-h-0 py-1">
+            <div class="bg-slate-900 border-2 border-slate-800 rounded-3xl p-3 sm:p-4 text-white shadow-2xl flex-shrink-0">
+                <h3 class="text-xs sm:text-sm md:text-base font-black title-font text-amber-400 mb-2 sm:mb-3 flex items-center justify-between">
+                    <span><i class="fa-solid fa-trophy mr-2 text-amber-400"></i> Papan Skor Tim</span>
+                    <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold border border-amber-500/30">4 Kelompok</span>
+                </h3>
+
+                <div class="space-y-2" id="scoreboardContainer">
+                    <!-- Dynamic Team Score Cards inserted via JS -->
+                </div>
+            </div>
+
+            <!-- Quick Rule Info Box -->
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 text-slate-300 text-[11px] sm:text-xs space-y-1.5 shadow-lg flex-shrink-0 hidden sm:block">
+                <div class="font-black text-amber-400 flex items-center gap-2 text-xs">
+                    <i class="fa-solid fa-lightbulb"></i> Misi Detektif:
+                </div>
+                <p class="leading-tight">1. Sentuh dadu di layar PID untuk melangkah di papan monopoli.</p>
+                <p class="leading-tight">2. Di petak kasus, selesaikan <b>3 soal</b> dalam <b>60 Detik</b>.</p>
+                <p class="leading-tight">3. Jawab <b>BENAR SEMUA (3/3)</b> untuk menguasai petak!</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MISSION / QUESTION MODAL CONTAINER (PID Optimized) -->
+    <div id="missionModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-slate-900 border-2 border-amber-500/70 rounded-3xl max-w-2xl w-full p-4 sm:p-6 text-white shadow-2xl relative max-h-[94vh] flex flex-col justify-between overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center space-x-2">
+                        <span id="modalTeamBadge" class="w-4 h-4 rounded-full bg-red-500 inline-block shadow"></span>
+                        <span id="modalTeamName" class="font-black text-xs sm:text-sm text-amber-400">Kelompok Merah</span>
+                    </div>
+
+                    <!-- Teacher Pause / Resume Control for PID -->
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="togglePauseTimer()" id="pauseTimerBtn" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 touch-active">
+                            <i class="fa-solid fa-pause" id="pauseIcon"></i> <span id="pauseText">Jeda Waktu</span>
+                        </button>
+                        <div class="bg-slate-800 border border-slate-700 text-slate-300 px-2.5 py-1 rounded-xl text-[11px] sm:text-xs font-bold" id="modalTileLocation">
+                            <i class="fa-solid fa-map-pin mr-1 text-red-400"></i> Petak Kasus #1
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-base sm:text-xl md:text-2xl font-black title-font text-white mb-1" id="modalTitle">
+                    Misi Detektif: Kasus Imbuhan Pe-
+                </h3>
+                <p class="text-[11px] sm:text-xs text-slate-400 mb-2">Pilih jawaban pada layar PID bersama kelompokmu sebelum waktu habis!</p>
+
+                <!-- 60-Second Realtime Progress Bar -->
+                <div class="w-full bg-slate-950 h-3.5 rounded-full overflow-hidden border border-slate-700 relative mb-2">
+                    <div id="timerProgressBar" class="bg-gradient-to-r from-emerald-500 via-amber-400 to-red-500 h-full w-full transition-all duration-1000 ease-linear"></div>
+                </div>
+                <div class="flex justify-between text-[11px] sm:text-xs font-bold text-slate-400 mb-2">
+                    <span><i class="fa-solid fa-stopwatch text-amber-400 mr-1"></i> Sisa Waktu Misi:</span>
+                    <span id="timerText" class="text-amber-400 text-xs sm:text-sm font-mono font-black">60 Detik</span>
+                </div>
+            </div>
+
+            <!-- Quiz Questions Container (PID Touch Large Area Scrollable) -->
+            <div id="quizContainer" class="overflow-y-auto space-y-3.5 pr-1.5 my-1 flex-1 max-h-[52vh]">
+                <!-- Dynamic Questions rendered here via JS -->
+            </div>
+
+            <!-- Submit Mission Button (Large Target for PID) -->
+            <div class="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-slate-800">
+                <button onclick="submitMission()" id="submitMissionBtn" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-2xl shadow-lg transition text-sm sm:text-base flex items-center justify-center gap-2 touch-active">
+                    <i class="fa-solid fa-circle-check text-lg"></i> KIRIM JAWABAN DETEKTIF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUESTION RESULT FEEDBACK MODAL -->
+    <div id="resultModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border-2 border-amber-500 rounded-3xl max-w-md w-full p-5 sm:p-6 text-center text-white shadow-2xl relative">
+            <div id="resultIconContainer" class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 rounded-full flex items-center justify-center text-3xl sm:text-4xl shadow-inner bg-amber-500/20 text-amber-400 border border-amber-500/40">
+                <i class="fa-solid fa-award"></i>
+            </div>
+            <h3 id="resultTitle" class="text-xl sm:text-2xl font-black title-font mb-2">Misi Selesai!</h3>
+            <p id="resultMessage" class="text-slate-300 text-xs sm:text-sm mb-4 leading-relaxed">Kelompok Merah berhasil menjawab soal!</p>
+            
+            <ul class="bg-slate-800/90 p-3.5 rounded-2xl border border-slate-700 mb-4 text-left text-xs space-y-2" id="resultDetails">
+                <!-- Breakdown score -->
+            </ul>
+
+            <button onclick="closeResultModal()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-black py-3.5 rounded-2xl transition shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base touch-active">
+                LANJUTKAN PERMAINAN <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME OVER / WINNER MODAL -->
+    <div id="gameOverModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-lg flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border-2 border-amber-400 rounded-3xl max-w-lg w-full p-6 sm:p-8 text-center text-white shadow-2xl relative overflow-hidden">
+            <div class="text-amber-400 text-5xl sm:text-6xl mb-2 animate-bounce">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-black title-font text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 mb-1">
+                PENGUMUMAN PEMENANG!
+            </h2>
+            <p class="text-slate-400 text-xs mb-5">Detektif Imbuhan Pe- Terbaik Kelas 5 SD</p>
+
+            <div id="podiumContainer" class="space-y-2.5 mb-5">
+                <!-- Ranked list of teams -->
+            </div>
+
+            <button onclick="resetGame()" class="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-950 font-black py-3.5 rounded-2xl transition shadow-xl text-sm sm:text-base flex items-center justify-center gap-2 touch-active">
+                <i class="fa-solid fa-rotate-right"></i> MAIN LAGI DARI AWAL
+            </button>
+        </div>
+    </div>
+
+    <!-- RULES MODAL -->
+    <div id="rulesModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-5 sm:p-6 text-white shadow-2xl relative">
+            <div class="flex justify-between items-center mb-3 border-b border-slate-800 pb-3">
+                <h3 class="text-lg sm:text-xl font-bold title-font text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open"></i> Aturan Permainan Detektif
+                </h3>
+                <button onclick="closeRulesModal()" class="text-slate-400 hover:text-white text-lg p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-2.5 text-xs sm:text-sm text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+                <p><b>1. Pembagian Tim:</b> Kelas dibagi menjadi 4 kelompok (Merah, Biru, Hijau, Kuning).</p>
+                <p><b>2. Dadu Digital & Bidak Magnet:</b> Setiap kelompok bergiliran menyentuh dadu 3D di layar PID. Bidak magnet digital akan berjalan otomatis.</p>
+                <p><b>3. Petak Kasus Imbuhan Pe-:</b> Terdapat 15 petak kartu kasus imbuhan pe- dan 5 pos intelijen khusus di sekeliling papan monopoli.</p>
+                <p><b>4. Misi 3 Soal Pilihan Ganda:</b> Saat berhenti di petak kasus, kelompok wajib menjawab 3 soal dalam waktu <b>60 Detik</b>:
+                    <br>&bull; Soal 1: Menentukan Kata Dasar.
+                    <br>&bull; Soal 2: Menentukan Fungsi / Makna Imbuhan Pe-.
+                    <br>&bull; Soal 3: Penggunaan Kalimat yang Benar.
+                </p>
+                <p><b>5. Poin & Hak Milik Petak:</b> Menjawab benar bernilai <b>+100 poin</b> per soal. Jika kelompok berhasil menjawab <b>BENAR SEMUA (3/3)</b>, wilayah/petak tersebut resmi menjadi milik kelompok!</p>
+                <p><b>6. Kesempatan Sama:</b> Setiap kelompok mendapat tepat <b>5 kali kesempatan melangkah/menjawab</b> (total 5 putaran lengkap).</p>
+                <p><b>7. Pemenang:</b> Kelompok dengan total poin tertinggi di akhir permainan akan dinobatkan sebagai Detektif Imbuhan Utama!</p>
+            </div>
+            <button onclick="closeRulesModal()" class="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold py-3 rounded-xl border border-slate-700 touch-active">
+                Paham & Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-900 text-center py-1 text-[10px] text-slate-500 flex-shrink-0">
+        Monopoli Detektif Imbuhan Pe- &copy; Media Pembelajaran Bahasa Indonesia Kelas 5 SD (Versi PID Interactive Board)
+    </footer>
+
+    <script>
+        /* SOUND SYNTHESIZER (WEB AUDIO API) */
+        let audioCtx = null;
+        let soundMuted = false;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function toggleAudio() {
+            soundMuted = !soundMuted;
+            const btnText = document.getElementById('audioText');
+            const btnIcon = document.getElementById('audioIcon');
+            if (soundMuted) {
+                if (btnText) btnText.innerText = "Suara: OFF";
+                if (btnIcon) btnIcon.className = "fa-solid fa-volume-xmark text-slate-400";
+            } else {
+                if (btnText) btnText.innerText = "Suara: ON";
+                if (btnIcon) btnIcon.className = "fa-solid fa-volume-high text-amber-300";
+                playSound('correct');
+            }
+        }
+
+        function playSound(type) {
+            if (soundMuted) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'roll') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'move') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.exponentialRampToValueAtTime(250, now + 0.08);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.setValueAtTime(140, now + 0.15);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'fanfare') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(554.37, now + 0.15);
+                osc.frequency.setValueAtTime(659.25, now + 0.3);
+                osc.frequency.setValueAtTime(880, now + 0.45);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.8);
+                osc.start(now);
+                osc.stop(now + 0.8);
+            }
+        }
+
+        /* PID FULLSCREEN UTILITY */
+        function toggleFullscreen() {
+            const icon = document.getElementById('fullscreenIcon');
+            const txt = document.getElementById('fullscreenText');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+                if (icon) icon.className = "fa-solid fa-compress";
+                if (txt) txt.innerText = "Keluar Layar Penuh";
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    if (icon) icon.className = "fa-solid fa-expand";
+                    if (txt) txt.innerText = "Layar Penuh";
+                }
+            }
+        }
+
+        /* PRESET NAMES FOR PID QUICK SELECTION */
+        function setPresetNames(namesArray) {
+            for (let i = 0; i < 4; i++) {
+                const inp = document.getElementById(`teamName${i}`);
+                if (inp && namesArray[i]) {
+                    inp.value = namesArray[i];
+                }
+            }
+            playSound('correct');
+        }
+
+        /* GAME DATA STRUCTURE & 20 TILES DATA */
+        let teams = [
+            { id: 0, name: "Kelompok Merah", color: "bg-red-500", border: "border-red-500", text: "text-red-400", hex: "#ef4444", score: 0, position: 0, tilesOwned: [] },
+            { id: 1, name: "Kelompok Biru", color: "bg-blue-500", border: "border-blue-500", text: "text-blue-400", hex: "#3b82f6", score: 0, position: 0, tilesOwned: [] },
+            { id: 2, name: "Kelompok Hijau", color: "bg-emerald-500", border: "border-emerald-500", text: "text-emerald-400", hex: "#10b981", score: 0, position: 0, tilesOwned: [] },
+            { id: 3, name: "Kelompok Kuning", color: "bg-amber-500", border: "border-amber-500", text: "text-amber-400", hex: "#f59e0b", score: 0, position: 0, tilesOwned: [] }
+        ];
+
+        let currentTurn = 0; // 0..3 (Team index)
+        let roundCount = 1;  // 1..5 (Exactly 5 Opportunities per team)
+        const maxRounds = 5; 
+        let isRolling = false;
+        let activeTimer = null;
+        let timerSeconds = 60;
+        let isTimerPaused = false;
+        let currentMissionTile = null;
+
+        // 20 Perimeter Tiles Definition (6x6 Grid perimeter: 0..19)
+        const boardTiles = [
+            { id: 0, name: "Pos Intel Utama", type: "start", icon: "fa-flag-checkered", color: "bg-amber-500/20 text-amber-400", gridPos: { col: 1, row: 1 } },
+            { id: 1, name: "Kasus Penulis", type: "property", icon: "fa-pen-fancy", color: "bg-red-500/20 text-red-400", gridPos: { col: 2, row: 1 }, 
+              q1: { q: "Kata dasar dari kata 'penulis' adalah...", ops: ["A. tulis", "B. nulis", "C. tulisan", "D. ditulis"], correct: 0 },
+              q2: { q: "Imbuhan pe- pada kata 'penulis' berfungsi menyatakan...", ops: ["A. Orang yang melakukan pekerjaan menulis", "B. Alat untuk menulis", "C. Hasil dari menulis", "D. Tempat untuk menulis"], correct: 0 },
+              q3: { q: "Penggunaan kata 'penulis' yang tepat dalam kalimat adalah...", ops: ["A. Andrea Hirata adalah penulis novel Laskar Pelangi.", "B. Ibu membeli penulis di toko buku.", "C. Adik penulis surat di meja belajar.", "D. Penulis itu sedang dipakai menggambar."], correct: 0 }
+            },
+            { id: 2, name: "Kasus Pemukul", type: "property", icon: "fa-baseball-bat-ball", color: "bg-red-500/20 text-red-400", gridPos: { col: 3, row: 1 },
+              q1: { q: "Kata dasar dari kata 'pemukul' adalah...", ops: ["A. pukul", "B. mukul", "C. pukulan", "D. dipukul"], correct: 0 },
+              q2: { q: "Imbuhan pe- pada kata 'pemukul' menyatakan makna...", ops: ["A. Alat yang digunakan untuk memukul", "B. Orang yang suka memukul", "C. Hasil dari pukulan", "D. Cara memukul"], correct: 0 },
+              q3: { q: "Kalimat yang menggunakan kata 'pemukul' dengan benar adalah...", ops: ["A. Wasit memeriksa kayu pemukul kasti sebelum pertandingan.", "B. Budi pemukul bola dengan sangat keras.", "C. Pemukul itu sedang membaca buku cerita.", "D. Ayah membeli pemukul nasi di pasar."], correct: 0 }
+            },
+            { id: 3, name: "Pos Dukungan Intel", type: "special", icon: "fa-shield-halved", color: "bg-cyan-500/20 text-cyan-400", gridPos: { col: 4, row: 1 } },
+            { id: 4, name: "Kasus Pembaca", type: "property", icon: "fa-book-open-reader", color: "bg-blue-500/20 text-blue-400", gridPos: { col: 5, row: 1 },
+              q1: { q: "Kata dasar dari 'pembaca' adalah...", ops: ["A. baca", "B. mbaca", "C. bacaan", "D. dibaca"], correct: 0 },
+              q2: { q: "Makna imbuhan pe- pada kata 'pembaca' adalah...", ops: ["A. Orang yang membaca", "B. Buku yang dibaca", "C. Alat pembaca", "D. Tempat membaca"], correct: 0 },
+              q3: { q: "Kalimat berikut yang tepat menggunakan kata 'pembaca' adalah...", ops: ["A. Pembaca puisi itu bersuara merdu dan penuh penghayatan.", "B. Roni pembaca koran setiap pagi di teras.", "C. Meja ini digunakan untuk pembaca buku.", "D. Ayah membeli pembaca koran baru."], correct: 0 }
+            },
+            { id: 5, name: "Kasus Penyapu", type: "property", icon: "fa-broom", color: "bg-blue-500/20 text-blue-400", gridPos: { col: 6, row: 1 },
+              q1: { q: "Kata dasar dari 'penyapu' adalah...", ops: ["A. sapu", "B. nyapu", "C. sapuan", "D. disapu"], correct: 0 },
+              q2: { q: "Makna imbuhan pe- pada kata 'penyapu' dalam kalimat 'Penyapu jalan otomatis' adalah...", ops: ["A. Alat untuk menyapu", "B. Orang yang menyapu", "C. Hasil menyapu", "D. Tempat menyapu"], correct: 0 },
+              q3: { q: "Kalimat yang tepat menggunakan kata 'penyapu' adalah...", ops: ["A. Petugas penyapu jalan bekerja keras menjaga kebersihan kota.", "B. Ibu penyapu halaman yang kotor.", "C. Penyapu itu sedang dimasak oleh ibu.", "D. Budi penyapu menggunakan sapu lidi."], correct: 0 }
+            },
+            { id: 6, name: "Istirahat Detektif", type: "special", icon: "fa-mug-hot", color: "bg-emerald-500/20 text-emerald-400", gridPos: { col: 6, row: 2 } },
+            { id: 7, name: "Kasus Pelari", type: "property", icon: "fa-person-running", color: "bg-emerald-500/20 text-emerald-400", gridPos: { col: 6, row: 3 },
+              q1: { q: "Kata dasar dari 'pelari' adalah...", ops: ["A. lari", "B. berlari", "C. larisan", "D. dilarikan"], correct: 0 },
+              q2: { q: "Makna imbuhan pe- pada kata 'pelari' adalah...", ops: ["A. Orang yang melakukan olahraga lari", "B. Alat untuk lari", "C. Tempat lari", "D. Hasil lari"], correct: 0 },
+              q3: { q: "Kalimat yang menggunakan kata 'pelari' secara tepat adalah...", ops: ["A. Pelari asal Indonesia memenangkan medali emas.", "B. Siswa itu pelari sangat cepat di lapangan.", "C. Sepatu pelari itu dibeli di toko sports.", "D. Pelari lapangan bola sangat luas."], correct: 0 }
+            },
+            { id: 8, name: "Kasus Penggoreng", type: "property", icon: "fa-kitchen-set", color: "bg-amber-500/20 text-amber-400", gridPos: { col: 6, row: 4 },
+              q1: { q: "Kata dasar dari 'penggoreng' adalah...", ops: ["A. goreng", "B. ngogreng", "C. gorengan", "D. digoreng"], correct: 0 },
+              q2: { q: "Makna imbuhan pe- pada 'wajan penggoreng' menyatakan...", ops: ["A. Alat yang digunakan untuk menggoreng", "B. Orang yang menggoreng", "C. Makanan hasil olahan", "D. Minyak goreng"], correct: 0 },
+              q3: { q: "Kalimat dengan penggunaan kata 'penggoreng' yang tepat adalah...", ops: ["A. Ibu mencuci wajan penggoreng setelah memasak ikan.", "B. Penggoreng itu sedang menggoreng tempe lezat.", "C. Adik penggoreng telur mata sapi.", "D. Makanan ini dibuat oleh penggoreng wajan."], correct: 0 }
+            },
+            { id: 9, name: "Kasus Pemalu", type: "property", icon: "fa-face-flushed", color: "bg-amber-500/20 text-amber-400", gridPos: { col: 6, row: 5 },
+              q1: { q: "Kata dasar dari kata 'pemalu' adalah...", ops: ["A. malu", "B. memalu", "C. kemaluan", "D. dimalukan"], correct: 0 },
+              q2: { q: "Imbuhan pe- pada kata 'pemalu' menyatakan makna...", ops: ["A. Memiliki sifat mudah malu", "B. Alat untuk membuat malu", "C. Orang yang membuat malu", "D. Tempat bersembunyi"], correct: 0 },
+              q3: { q: "Kalimat berikut yang benar menggunakan kata 'pemalu' adalah...", ops: ["A. Ani adalah anak pemalu yang tersenyum saat disapa.", "B. Kucing itu pemalu makanan di atas meja.", "C. Jangan pemalu teman sendiri di depan kelas.", "D. Ibu membeli pemalu di toko aksesoris."], correct: 0 }
+            },
+            { id: 10, name: "Pos Razia Intel", type: "special", icon: "fa-building-shield", color: "bg-purple-500/20 text-purple-400", gridPos: { col: 6, row: 6 } },
+            { id: 11, name: "Kasus Pendengar", type: "property", icon: "fa-headphones", color: "bg-purple-500/20 text-purple-400", gridPos: { col: 5, row: 6 },
+              q1: { q: "Kata dasar dari 'pendengar' adalah...", ops: ["A. dengar", "B. ndengar", "C. pendengaran", "D. didengar"], correct: 0 },
+              q2: { q: "Imbuhan pe- pada kata 'pendengar' menyatakan...", ops: ["A. Orang yang mendengarkan", "B. Alat pendengar", "C. Suara yang didengar", "D. Tempat mendengar"], correct: 0 },
+              q3: { q: "Kalimat yang tepat menggunakan kata 'pendengar' adalah...", ops: ["A. Pendengar setia radio itu memenangkan kuis utama.", "B. Budi pendengar musik rock di kamarnya.", "C. Telinga adalah pendengar suara manusia.", "D. Radio itu pendengar berita sore."], correct: 0 }
+            },
+            { id: 12, name: "Kasus Penjahit", type: "property", icon: "fa-scissors", color: "bg-purple-500/20 text-purple-400", gridPos: { col: 4, row: 6 },
+              q1: { q: "Kata dasar dari 'penjahit' adalah...", ops: ["A. jahit", "B. menjahit", "C. jahitan", "D. dijahit"], correct: 0 },
+              q2: { q: "Makna imbuhan pe- pada kata 'penjahit' adalah...", ops: ["A. Orang yang profesinya menjahit pakaian", "B. Mesin jahit", "C. Hasil jahitan", "D. Jarum dan benang"], correct: 0 },
+              q3: { q: "Kalimat yang tepat menggunakan kata 'penjahit' adalah...", ops: ["A. Penjahit itu membuatkan seragam sekolah baru untuk Doni.", "B. Ibu penjahit baju adik yang robek.", "C. Mesin penjahit ini bekerja sangat cepat.", "D. Penjahit baju ini sangat rapi dan lurus."], correct: 0 }
+            },
+            { id: 13, name: "Kasus Penari", type: "property", icon: "fa-masks-theater", color: "bg-pink-500/20 text-pink-400", gridPos: { col: 3, row: 6 },
+              q1: { q: "Kata dasar dari kata 'penari' adalah...", ops: ["A. tari", "B. menari", "C. tarian", "D. ditari"], correct: 0 },
+              q2: { q: "Imbuhan pe- pada kata 'penari' menyatakan...", ops: ["A. Orang yang memperagakan seni tari", "B. Alat peraga tari", "C. Gerakan tari", "D. Panggung tempat menari"], correct: 0 },
+              q3: { q: "Kalimat yang benar adalah...", ops: ["A. Para penari Bali tampil memukau di atas panggung.", "B. Kakak penari tari piring dengan gembira.", "C. Penari itu dipasang di gedung seni.", "D. Musik ini sangat cocok untuk penari lagu."], correct: 0 }
+            },
+            { id: 14, name: "Pos Radar Intel", type: "special", icon: "fa-satellite-dish", color: "bg-indigo-500/20 text-indigo-400", gridPos: { col: 2, row: 6 } },
+            { id: 15, name: "Kasus Penglihatan", type: "property", icon: "fa-eye", color: "bg-indigo-500/20 text-indigo-400", gridPos: { col: 1, row: 6 },
+              q1: { q: "Kata dasar dari 'penglihatan' (alat penglihat) adalah...", ops: ["A. lihat", "B. ngelihat", "C. kelihatan", "D. dilihat"], correct: 0 },
+              q2: { q: "Imbuhan pe- pada 'alat penglihat' menyatakan...", ops: ["A. Alat yang digunakan untuk melihat", "B. Orang yang melihat", "C. Hasil penglihatan", "D. Pemandangan indah"], correct: 0 },
+              q3: { q: "Kalimat yang benar menggunakan 'penglihat' adalah...", ops: ["A. Mata merupakan indera penglihat utama manusia.", "B. Kaca mata penglihat itu membaca buku.", "C. Dia penglihat pemandangan gunung.", "D. Penglihat itu sedang berjalan di taman."], correct: 0 }
+            },
+            { id: 16, name: "Kasus Pemotong", type: "property", icon: "fa-scissors", color: "bg-teal-500/20 text-teal-400", gridPos: { col: 1, row: 5 },
+              q1: { q: "Kata dasar dari kata 'pemotong' adalah...", ops: ["A. potong", "B. motong", "C. potongan", "D. dipotong"], correct: 0 },
+              q2: { q: "Imbuhan pe- pada kata 'pemotong' menyatakan...", ops: ["A. Alat yang digunakan untuk memotong", "B. Orang yang kena potong", "C. Hasil potongan", "D. Bekas potongan"], correct: 0 },
+              q3: { q: "Kalimat yang tepat adalah...", ops: ["A. Ayah menggunakan mesin pemotong rumput di taman.", "B. Pemotong rumput itu sedang memotong daging.", "C. Ibu pemotong sayur di dapur.", "D. Gunting pemotong itu membaca surat."], correct: 0 }
+            },
+            { id: 17, name: "Kasus Penolong", type: "property", icon: "fa-hand-holding-heart", color: "bg-teal-500/20 text-teal-400", gridPos: { col: 1, row: 4 },
+              q1: { q: "Kata dasar dari 'penolong' adalah...", ops: ["A. tolong", "B. nolak", "C. pertolongan", "D. ditolong"], correct: 0 },
+              q2: { q: "Makna imbuhan pe- pada kata 'penolong' adalah...", ops: ["A. Orang yang suka memberikan pertolongan", "B. Alat minta tolong", "C. Cara menolong", "D. Tempat meminta bantuan"], correct: 0 },
+              q3: { q: "Kalimat yang menggunakan 'penolong' secara benar adalah...", ops: ["A. Petugas damkar adalah penolong yang siap bersiaga 24 jam.", "B. Budi penolong kakek menyeberang jalan.", "C. Jangan lupa penolong orang lain yang kesusahan.", "D. Penolong itu berbunyi sangat keras."], correct: 0 }
+            },
+            { id: 18, name: "Kasus Perusak", type: "property", icon: "fa-skull-crossbones", color: "bg-rose-500/20 text-rose-400", gridPos: { col: 1, row: 3 },
+              q1: { q: "Kata dasar dari kata 'perusak' adalah...", ops: ["A. rusak", "B. ngerusak", "C. kerusakan", "D. dirusak"], correct: 0 },
+              q2: { q: "Imbuhan pe- pada kata 'perusak' menyatakan...", ops: ["A. Orang atau hal yang menyebabkan kerusakan", "B. Alat untuk memperbaiki", "C. Hasil perbaikan", "D. Tempat barang rusak"], correct: 0 },
+              q3: { q: "Kalimat yang tepat menggunakan kata 'perusak' adalah...", ops: ["A. Hama tikus menjadi perusak utama tanaman padi.", "B. Anak itu perusak mainannya sendiri.", "C. Rumah perusak itu sudah diperbaiki.", "D. Ayah membeli perusak kayu di toko."], correct: 0 }
+            },
+            { id: 19, name: "Kasus Pembantu", type: "property", icon: "fa-hands-helping", color: "bg-rose-500/20 text-rose-400", gridPos: { col: 1, row: 2 },
+              q1: { q: "Kata dasar dari 'pembantu' adalah...", ops: ["A. bantu", "B. mbantu", "C. bantuan", "D. dibantu"], correct: 0 },
+              q2: { q: "Makna imbuhan pe- pada kata 'pembantu' adalah...", ops: ["A. Orang yang bertugas membantu orang lain", "B. Alat untuk membantu", "C. Hasil bantuan", "D. Cara membantu"], correct: 0 },
+              q3: { q: "Kalimat yang benar adalah...", ops: ["A. Bibi Ani bekerja sebagai pembantu rumah tangga rajin.", "B. Budi pembantu ibu membersihkan meja.", "C. Uang ini adalah pembantu korban bencana.", "D. Pembantu ini sangat tajam untuk memotong."], correct: 0 }
+            }
+        ];
+
+        function renderBoard() {
+            const board = document.getElementById('monopolyBoard');
+            const centerArea = board.querySelector('.col-start-2');
+            board.innerHTML = '';
+            board.appendChild(centerArea);
+
+            boardTiles.forEach((tile) => {
+                const tileEl = document.createElement('div');
+                tileEl.id = `tile-${tile.id}`;
+                tileEl.className = `tile-card ${tile.color}`;
+                tileEl.style.gridColumn = tile.gridPos.col;
+                tileEl.style.gridRow = tile.gridPos.row;
+
+                tileEl.innerHTML = `
+                    <div class="flex justify-between items-center text-[9px] sm:text-[10px] font-bold opacity-80">
+                        <span>#${tile.id}</span>
+                        <i class="fa-solid ${tile.icon}"></i>
+                    </div>
+                    <div class="my-auto text-center py-0.5">
+                        <div class="font-black text-[10px] sm:text-xs tracking-tight line-clamp-1 text-white">${tile.name}</div>
+                        <div class="tile-owner-badge text-[8px] sm:text-[9px] font-extrabold text-center rounded py-0.2 mt-0.5 text-slate-400 truncate">
+                            ${tile.type === 'property' ? 'Bebas Kasus' : 'Pos Intel'}
+                        </div>
+                    </div>
+                    <div class="pawns-wrapper" id="pawn-container-${tile.id}"></div>
+                `;
+
+                board.appendChild(tileEl);
+            });
+        }
+
+        function updatePawnPositions() {
+            // Clear all pawn containers
+            boardTiles.forEach(t => {
+                const container = document.getElementById(`pawn-container-${t.id}`);
+                if (container) container.innerHTML = '';
+            });
+
+            // Re-render pawns for each team
+            teams.forEach((t) => {
+                const container = document.getElementById(`pawn-container-${t.position}`);
+                if (container) {
+                    const badge = document.createElement('div');
+                    const isCurrent = teams[currentTurn].id === t.id;
+                    badge.className = `pawn-badge ${t.color} ${isCurrent ? 'pawn-active-glow ring-2 ring-amber-300' : ''}`;
+                    badge.innerText = t.name.replace('Kelompok ', '').substring(0, 1);
+                    badge.title = `${t.name} (Poin: ${t.score})`;
+                    container.appendChild(badge);
+                }
+            });
+        }
+
+        function startGame() {
+            // Get user inputs for team names
+            for (let i = 0; i < 4; i++) {
+                const inp = document.getElementById(`teamName${i}`);
+                if (inp && inp.value.trim() !== '') {
+                    teams[i].name = inp.value.trim();
+                }
+            }
+
+            document.getElementById('startScreen').classList.add('hidden');
+            renderBoard();
+            updateScoreboard();
+            updateTurnUI();
+            updatePawnPositions();
+            playSound('correct');
+        }
+
+        function updateTurnUI() {
+            const team = teams[currentTurn];
+            const turnBanner = document.getElementById('turnBanner');
+            const turnPawnBadge = document.getElementById('turnPawnBadge');
+            const currentTeamText = document.getElementById('currentTeamText');
+
+            turnBanner.style.borderColor = team.hex;
+            turnPawnBadge.className = `w-4 h-4 rounded-full ${team.color} inline-block shadow-md`;
+            currentTeamText.innerText = team.name;
+            currentTeamText.style.color = team.hex;
+
+            document.getElementById('roundCounter').innerText = `Putaran: ${roundCount} / ${maxRounds} (5 Kesempatan/Kelompok)`;
+        }
+
+        function rollDice() {
+            if (isRolling) return;
+            isRolling = true;
+
+            initAudio();
+            document.getElementById('rollBtn').disabled = true;
+            document.getElementById('rollBtn').classList.add('opacity-50');
+            document.getElementById('diceStatus').innerText = "Dadu sedang berputar...";
+
+            const dice3d = document.getElementById('dice3d');
+            const diceValue = Math.floor(Math.random() * 6) + 1;
+
+            playSound('roll');
+
+            // Set 3D rotation based on outcome
+            let rotX = 720;
+            let rotY = 720;
+
+            switch(diceValue) {
+                case 1: rotX += 0; rotY += 0; break;
+                case 2: rotX += 0; rotY += 180; break;
+                case 3: rotX += 0; rotY += -90; break;
+                case 4: rotX += 0; rotY += 90; break;
+                case 5: rotX += -90; rotY += 0; break;
+                case 6: rotX += 90; rotY += 0; break;
+            }
+
+            dice3d.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+
+            setTimeout(() => {
+                document.getElementById('diceStatus').innerText = `Dadu menunjukkan angka ${diceValue}!`;
+                movePawnStepByStep(diceValue);
+            }, 1250);
+        }
+
+        function movePawnStepByStep(steps) {
+            const team = teams[currentTurn];
+            let stepsRemaining = steps;
+
+            const stepInterval = setInterval(() => {
+                if (stepsRemaining > 0) {
+                    team.position = (team.position + 1) % 20;
+                    playSound('move');
+                    updatePawnPositions();
+                    stepsRemaining--;
+                } else {
+                    clearInterval(stepInterval);
+                    setTimeout(() => {
+                        handleTileLanding(team.position);
+                    }, 400);
+                }
+            }, 300);
+        }
+
+        function handleTileLanding(position) {
+            const tile = boardTiles[position];
+            currentMissionTile = tile;
+
+            if (tile.type === 'special' || tile.type === 'start') {
+                // Special Pos Intelijen Tile Event
+                let bonus = 50;
+                teams[currentTurn].score += bonus;
+                playSound('correct');
+                
+                showResultModal(
+                    "POS INTELIJEN KHUSUS!",
+                    `${teams[currentTurn].name} singgah di <b>${tile.name}</b> dan mendapatkan bonus dukungan intel sebesar <b>+${bonus} Poin</b>!`,
+                    `<li class="text-amber-400 font-bold"><i class="fa-solid fa-star mr-1.5"></i> Bonus Pos Intel: +${bonus} Poin</li>`
+                );
+            } else if (tile.type === 'property') {
+                // Property Case Tile: Open Mission Quiz Modal
+                openMissionModal(tile);
+            }
+        }
+
+        function openMissionModal(tile) {
+            const team = teams[currentTurn];
+            document.getElementById('modalTeamBadge').className = `w-4 h-4 rounded-full ${team.color} inline-block shadow`;
+            document.getElementById('modalTeamName').innerText = team.name;
+            document.getElementById('modalTileLocation').innerHTML = `<i class="fa-solid fa-map-pin mr-1 text-amber-400"></i> ${tile.name} (#${tile.id})`;
+            
+            // Reset Pause state
+            isTimerPaused = false;
+            updatePauseBtnUI();
+
+            const quizContainer = document.getElementById('quizContainer');
+            quizContainer.innerHTML = '';
+
+            const questions = [tile.q1, tile.q2, tile.q3];
+            questions.forEach((qObj, idx) => {
+                const qBox = document.createElement('div');
+                qBox.className = 'bg-slate-800/90 border border-slate-700 p-3.5 sm:p-4 rounded-2xl space-y-2.5';
+                
+                let optionsHtml = '';
+                qObj.ops.forEach((op, opIdx) => {
+                    optionsHtml += `
+                        <label class="flex items-center space-x-3 bg-slate-900/90 hover:bg-slate-950 p-3 sm:p-3.5 rounded-xl border border-slate-700 cursor-pointer transition text-xs sm:text-base active:bg-slate-950 touch-active">
+                            <input type="radio" name="q${idx}" value="${opIdx}" class="w-5 h-5 text-amber-500 focus:ring-amber-400">
+                            <span class="text-slate-100 font-bold leading-relaxed">${op}</span>
+                        </label>
+                    `;
+                });
+
+                qBox.innerHTML = `
+                    <div class="font-extrabold text-xs sm:text-base text-amber-400 flex items-center gap-2">
+                        <span class="bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-md text-[10px] sm:text-xs font-black">Soal ${idx + 1}</span>
+                        ${qObj.q}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-2">
+                        ${optionsHtml}
+                    </div>
+                `;
+                quizContainer.appendChild(qBox);
+            });
+
+            document.getElementById('missionModal').classList.remove('hidden');
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(activeTimer);
+            timerSeconds = 60;
+            const timerBar = document.getElementById('timerProgressBar');
+            const timerText = document.getElementById('timerText');
+
+            timerBar.style.width = '100%';
+            timerText.innerText = '60 Detik';
+
+            activeTimer = setInterval(() => {
+                if (isTimerPaused) return; // Paused by teacher
+
+                timerSeconds--;
+                const pct = (timerSeconds / 60) * 100;
+                timerBar.style.width = `${pct}%`;
+                timerText.innerText = `${timerSeconds} Detik`;
+
+                if (timerSeconds <= 0) {
+                    clearInterval(activeTimer);
+                    submitMission(true); // Auto-submit on timeout
+                }
+            }, 1000);
+        }
+
+        /* TEACHER PAUSE TIMER FUNCTION FOR PID */
+        function togglePauseTimer() {
+            isTimerPaused = !isTimerPaused;
+            updatePauseBtnUI();
+        }
+
+        function updatePauseBtnUI() {
+            const icon = document.getElementById('pauseIcon');
+            const txt = document.getElementById('pauseText');
+            const btn = document.getElementById('pauseTimerBtn');
+            if (isTimerPaused) {
+                if (icon) icon.className = "fa-solid fa-play text-emerald-400";
+                if (txt) txt.innerText = "Lanjutkan Waktu";
+                if (btn) btn.className = "bg-amber-500/20 text-amber-300 border border-amber-500/50 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 touch-active";
+            } else {
+                if (icon) icon.className = "fa-solid fa-pause text-amber-300";
+                if (txt) txt.innerText = "Jeda Waktu";
+                if (btn) btn.className = "bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 touch-active";
+            }
+        }
+
+        function submitMission(isTimeout = false) {
+            clearInterval(activeTimer);
+            document.getElementById('missionModal').classList.add('hidden');
+
+            const team = teams[currentTurn];
+            let correctCount = 0;
+            let breakdownHtml = "";
+
+            const qKeys = [currentMissionTile.q1, currentMissionTile.q2, currentMissionTile.q3];
+
+            qKeys.forEach((qObj, idx) => {
+                const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+                const userAns = selected ? parseInt(selected.value) : -1;
+
+                if (userAns === qObj.correct) {
+                    correctCount++;
+                    breakdownHtml += `<li class="text-emerald-400 font-bold"><i class="fa-solid fa-check mr-1.5"></i> Soal ${idx + 1}: BENAR (+100 Poin)</li>`;
+                } else {
+                    breakdownHtml += `<li class="text-red-400 font-bold"><i class="fa-solid fa-xmark mr-1.5"></i> Soal ${idx + 1}: SALAH / Tidak Diisi (0 Poin)</li>`;
+                }
+            });
+
+            const pointsGained = correctCount * 100;
+            team.score += pointsGained;
+
+            let claimedTile = false;
+            // Rule: Group MUST answer ALL 3 questions correctly (3/3) to claim ownership of the case tile!
+            if (correctCount === 3 && currentMissionTile.type === 'property') {
+                if (!team.tilesOwned.includes(currentMissionTile.id)) {
+                    team.tilesOwned.push(currentMissionTile.id);
+                    claimedTile = true;
+                    updateTileOwnershipUI(currentMissionTile.id, team);
+                }
+            }
+
+            if (correctCount > 0) playSound('correct');
+            else playSound('wrong');
+
+            let titleMsg = isTimeout ? "WAKTU HABIS!" : (correctCount === 3 ? "MISI DETEKTIF SEMPURNA!" : (correctCount >= 1 ? "MISI SELESAI!" : "MISI GAGAL!"));
+            let resultDesc = `${team.name} menjawab <b>${correctCount} dari 3</b> soal dengan benar (+${pointsGained} Poin).`;
+            if (claimedTile) {
+                resultDesc += `<br><span class="text-amber-400 font-black"><i class="fa-solid fa-flag"></i> ${team.name} Berhasil Menguasai ${currentMissionTile.name}!</span>`;
+            } else if (correctCount < 3 && currentMissionTile.type === 'property') {
+                resultDesc += `<br><span class="text-slate-400 text-xs">(Harus menjawab BENAR SEMUA 3/3 untuk menguasai petak kasus ini)</span>`;
+            }
+
+            showResultModal(titleMsg, resultDesc, breakdownHtml);
+        }
+
+        function updateTileOwnershipUI(tileId, team) {
+            const tileEl = document.getElementById(`tile-${tileId}`);
+            if (tileEl) {
+                const badge = tileEl.querySelector('.tile-owner-badge');
+                if (badge) {
+                    badge.innerText = team.name;
+                    badge.className = `tile-owner-badge text-[8px] sm:text-[9px] font-extrabold text-center rounded py-0.2 ${team.color} text-white shadow truncate px-1 border border-white/40`;
+                }
+            }
+        }
+
+        function showResultModal(title, msg, details) {
+            document.getElementById('resultTitle').innerText = title;
+            document.getElementById('resultMessage').innerHTML = msg;
+            document.getElementById('resultDetails').innerHTML = details;
+            
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+            nextTurn();
+        }
+
+        function nextTurn() {
+            currentTurn = (currentTurn + 1) % teams.length;
+            if (currentTurn === 0) {
+                roundCount++;
+            }
+
+            updateScoreboard();
+            updateTurnUI();
+            updatePawnPositions();
+
+            // Re-enable roll button
+            isRolling = false;
+            document.getElementById('rollBtn').disabled = false;
+            document.getElementById('rollBtn').classList.remove('opacity-50');
+            document.getElementById('diceStatus').innerText = "Sentuh dadu untuk melangkah!";
+
+            // Check if game finish condition met (All groups completed 5 turns)
+            if (roundCount > maxRounds) {
+                triggerGameOver();
+            }
+        }
+
+        function updateScoreboard() {
+            const container = document.getElementById('scoreboardContainer');
+            container.innerHTML = '';
+
+            teams.forEach((t) => {
+                const isCurrent = teams[currentTurn].id === t.id;
+
+                const card = document.createElement('div');
+                card.className = `bg-slate-800/90 border-2 ${isCurrent ? 'border-amber-400 shadow-amber-500/20 shadow-lg' : 'border-slate-700'} p-3 rounded-2xl flex items-center justify-between transition-all`;
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="w-4 h-4 rounded-full ${t.color} inline-block shadow flex-shrink-0"></span>
+                        <div>
+                            <div class="font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                                ${t.name}
+                                ${isCurrent ? '<span class="text-[9px] bg-amber-500 text-slate-950 px-1.5 rounded font-black">GILIRAN</span>' : ''}
+                            </div>
+                            <div class="text-[10px] sm:text-xs text-slate-400 font-medium">
+                                <i class="fa-solid fa-house"></i> Petak Dikuasai: ${t.tilesOwned.length}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm sm:text-base font-black text-amber-400 font-mono">${t.score}</span>
+                        <span class="text-[9px] text-slate-400 block font-medium">Poin</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function triggerGameOver() {
+            playSound('fanfare');
+            confetti({
+                particleCount: 160,
+                spread: 85,
+                origin: { y: 0.6 }
+            });
+
+            const sorted = [...teams].sort((a,b) => b.score - a.score);
+            const podium = document.getElementById('podiumContainer');
+            podium.innerHTML = '';
+
+            sorted.forEach((t, idx) => {
+                const medalIcons = ['fa-trophy text-amber-400', 'fa-medal text-slate-300', 'fa-award text-amber-600', 'fa-star text-slate-500'];
+                const rankLabels = ['JUARA 1', 'JUARA 2', 'JUARA 3', 'JUARA 4'];
+                
+                const card = document.createElement('div');
+                card.className = `bg-slate-800 border-2 ${idx === 0 ? 'border-amber-400 bg-amber-500/10' : 'border-slate-700'} p-3.5 sm:p-4 rounded-2xl flex items-center justify-between text-left shadow-lg`;
+                card.innerHTML = `
+                    <div class="flex items-center space-x-3.5">
+                        <span class="text-xl sm:text-2xl"><i class="fa-solid ${medalIcons[idx]}"></i></span>
+                        <div>
+                            <span class="text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-amber-400">${rankLabels[idx]}</span>
+                            <div class="font-black text-xs sm:text-base text-white mt-0.5">${t.name}</div>
+                            <div class="text-[10px] sm:text-xs text-slate-400">Petak Kasus Dikuasai: ${t.tilesOwned.length}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-lg sm:text-xl font-black text-amber-400 font-mono">${t.score}</span>
+                        <span class="text-[10px] sm:text-xs text-slate-400 block font-bold">Total Poin</span>
+                    </div>
+                `;
+                podium.appendChild(card);
+            });
+
+            document.getElementById('gameOverModal').classList.remove('hidden');
+        }
+
+        function resetGame() {
+            teams.forEach(t => {
+                t.score = 0;
+                t.position = 0;
+                t.tilesOwned = [];
+            });
+            currentTurn = 0;
+            roundCount = 1;
+            isRolling = false;
+
+            document.getElementById('gameOverModal').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+
+        function showRulesModal() {
+            document.getElementById('rulesModal').classList.remove('hidden');
+        }
+
+        function closeRulesModal() {
+            document.getElementById('rulesModal').classList.add('hidden');
+        }
+
+        window.onload = function() {
+            renderBoard();
+            updateTurnUI();
+            updateScoreboard();
+        };
+    </script>
+</body>
+</html>
